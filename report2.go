@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	
+
 }
 
 // LoadConfig load parameters for Database 
@@ -18,4 +18,11 @@ func LoadConfig() (string, string, string, string, string, error) {
 	dbPassword := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
 	return pathAccess, dbServer, dbUser, dbPassword, dbName, err
+}
+
+// Check error
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
