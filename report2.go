@@ -46,3 +46,13 @@ func ConnectMSACCESS(pathAccess string) *sql.DB {
 	return dbAccess
 }
 
+// CopyTable make original copy table in database
+func CopyTable(db *sql.DB, tableOriginalName string) (string, error) {
+	return tableOriginalName, nil;
+}
+
+// ExistTable checks if there is a table in the database
+func ExistTable(db *sql.DB, tableName string) (bool) {
+	return false
+}
+

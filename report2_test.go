@@ -15,7 +15,13 @@ func TestReport(t *testing.T) {
 
 var _ = Describe("Report", func() {
 	Context("Copy Table", func() {
-		It("has copy table in database", func() {
+		_, dbServer, dbUser, dbPassword, _, _ := LoadConfig()
+		db := ConnectMSSQL(dbServer, dbUser, dbPassword)
+		tableName := "Узлы"	
+		It("can copy table in database", func() {
+			tableCopyName, err := CopyTable(db, tableName)
+			Expect(tableCopyName).Should(Equal(tableName + "_orig"))
+			Expect(err).Should(BeNil())
 
 		})
 	})
