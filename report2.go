@@ -13,6 +13,12 @@ func main() {
 
 }
 
+//TableDescription to output a table structure
+type TableDescription struct {
+	columnName string
+	dataType  string
+}
+
 // LoadConfig load parameters for Database 
 func LoadConfig() (string, string, string, string, string, error) {
 	err := godotenv.Load()
@@ -47,8 +53,28 @@ func ConnectMSACCESS(pathAccess string) *sql.DB {
 }
 
 // CopyTable make original copy table in database
-func CopyTable(db *sql.DB, dbName String, tableOriginalName string) (string, error) {
-	return tableOriginalName, nil;
+func CopyTable(db *sql.DB, dbName string, tableOriginalName string) (string, error) {
+	var err error
+	if !ExistTable(db, dbName, tableOriginalName + "_orig") {
+		var row TableDescription
+		query := "SELECT COLUMN_NAME, DATA_TYPE FROM [" + dbName + "].INFORMATION_SCHEMA.COLUMNS "
+		query += "WHERE TABLE_NAME = '" + tableOriginalName + "' "
+		query += "ORDER BY ORDINAL_POSITION"
+		queryCreate := "CREATE TABLE [" + dbName + "].[dbo]." + tableOriginalName + "_orig ("
+
+		tbl, err := db.Query(query)
+		checkErr(err)
+		for tbl.Next() {
+			err = tbl.Scan(&row.columnName, &row.dataType)
+			query += "[" + row.columnName + "] "
+			query += "[" + row.dataType + "] NULL,"
+		}
+		query += ") ON [PRIMARY]"
+
+		_, err = db.Exec(queryCreate)
+	}
+
+	return tableOriginalName + "_orig", err;
 }
 
 // ExistTable checks if there is a table in the database
