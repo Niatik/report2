@@ -26,6 +26,15 @@ var _ = Describe("Report", func() {
 		})
 	})
 
+	Context("Exist Table", func() {
+		_, dbServer, dbUser, dbPassword, _, _ := LoadConfig()
+		db := ConnectMSSQL(dbServer, dbUser, dbPassword)
+		tableName := "Узлы"
+		It("has the table in database", func() {
+			Expect(ExistTable(db, tableName)).Should(BeTrue())
+		})	
+	})
+
 	Context("Connect MS SQL Database", func() {
 		_, dbServer, dbUser, dbPassword, _, _ := LoadConfig()
 		db := ConnectMSSQL(dbServer, dbUser, dbPassword)
