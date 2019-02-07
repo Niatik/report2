@@ -53,6 +53,12 @@ func CopyTable(db *sql.DB, tableOriginalName string) (string, error) {
 
 // ExistTable checks if there is a table in the database
 func ExistTable(db *sql.DB, tableName string) (bool) {
-	return false
+	query := "SELECT 1 FROM " + tableName
+	_, err := db.Query(query)
+	result := true;
+	if err!= nil {
+		result = false
+	}
+	return result
 }
 
