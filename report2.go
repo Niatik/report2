@@ -47,7 +47,7 @@ func ConnectMSACCESS(pathAccess string) *sql.DB {
 }
 
 // CopyTable make original copy table in database
-func CopyTable(db *sql.DB, tableOriginalName string) (string, error) {
+func CopyTable(db *sql.DB, dbName String, tableOriginalName string) (string, error) {
 	return tableOriginalName, nil;
 }
 
