@@ -27,11 +27,11 @@ var _ = Describe("Report", func() {
 	})
 
 	Context("Exist Table", func() {
-		_, dbServer, dbUser, dbPassword, _, _ := LoadConfig()
+		_, dbServer, dbUser, dbPassword, dbName, _ := LoadConfig()
 		db := ConnectMSSQL(dbServer, dbUser, dbPassword)
 		tableName := "Узлы"
 		It("has the table in database", func() {
-			Expect(ExistTable(db, tableName)).Should(BeTrue())
+			Expect(ExistTable(db, dbName, tableName)).Should(BeTrue())
 		})	
 	})
 
