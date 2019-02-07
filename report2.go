@@ -3,7 +3,11 @@ package main
 import (
 	"os"
 	"github.com/joho/godotenv"
-) 
+)
+
+func main() {
+	
+}
 
 // LoadConfig load parameters for Database 
 func LoadConfig() (string, string, string, string, string, error) {
