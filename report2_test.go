@@ -28,6 +28,15 @@ var _ = Describe("Report", func() {
 		})
 	})
 
+	Context("Connect MS SQL Database", func() {
+		pathAccess, _, _, _, _, _ := LoadConfig()
+		db := ConnectMSACCESS(pathAccess)
+		It("can connect to database", func() {
+			Expect(db).ShouldNot(BeNil())
+		})
+	})
+
+
 	Context("Load Configuration", func() {
 		dbServer := ""
 		dbUser := ""
