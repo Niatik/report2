@@ -1,8 +1,12 @@
 package main
 
 import (
+	"database/sql"
 	"os"
 	"github.com/joho/godotenv"
+	_ "github.com/alexbrainman/odbc"
+	_ "github.com/denisenkom/go-mssqldb"
+
 )
 
 func main() {
@@ -26,3 +30,19 @@ func checkErr(err error) {
 		panic(err)
 	}
 }
+
+// ConnectMSSQL connect to MS SQL Server
+func ConnectMSSQL(dbServer, dbUser, dbPassword string) *sql.DB {
+	db, err := sql.Open("mssql", "server="+dbServer+";user id="+dbUser+";password="+dbPassword)
+	checkErr(err)
+	return db
+}
+
+// ConnectMSACCESS connect to MS Access Database
+func ConnectMSACCESS(pathAccess string) *sql.DB {
+	connAccess := "Driver=Microsoft Access Driver (*.mdb, *.accdb);driverid=25;DBQ=" + pathAccess + ";FIL=MS Access;SafeTransaction=0"
+	dbAccess, err := sql.Open("odbc", connAccess)
+	checkErr(err)
+	return dbAccess
+}
+
