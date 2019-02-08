@@ -2,7 +2,9 @@ package main
 
 import (
 	"database/sql"
+	//"fmt"
 	"os"
+	"strconv"
 	"github.com/joho/godotenv"
 	_ "github.com/alexbrainman/odbc"
 	_ "github.com/denisenkom/go-mssqldb"
@@ -17,6 +19,7 @@ func main() {
 type TableDescription struct {
 	columnName string
 	dataType  string
+	maxChars int
 }
 
 // LoadConfig load parameters for Database 
@@ -57,21 +60,75 @@ func CopyTable(db *sql.DB, dbName string, tableOriginalName string) (string, err
 	var err error
 	if !ExistTable(db, dbName, tableOriginalName + "_orig") {
 		var row TableDescription
-		query := "SELECT COLUMN_NAME, DATA_TYPE FROM [" + dbName + "].INFORMATION_SCHEMA.COLUMNS "
+		query := "SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM  [" + dbName + "].INFORMATION_SCHEMA.COLUMNS "
 		query += "WHERE TABLE_NAME = '" + tableOriginalName + "' "
 		query += "ORDER BY ORDINAL_POSITION"
 		queryCreate := "CREATE TABLE [" + dbName + "].[dbo]." + tableOriginalName + "_orig ("
-
+		querySelect := "SELECT "
+		queryInsert := "INSERT INTO [" + dbName + "].[dbo]." +tableOriginalName + "_orig ("
+		
 		tbl, err := db.Query(query)
 		checkErr(err)
+		r := 0
 		for tbl.Next() {
-			err = tbl.Scan(&row.columnName, &row.dataType)
-			query += "[" + row.columnName + "] "
-			query += "[" + row.dataType + "] NULL,"
+			err = tbl.Scan(&row.columnName, &row.dataType, &row.maxChars)
+			if r > 0 {
+				queryCreate += ", "
+				querySelect += ", "
+				queryInsert += ", "
+			}
+			queryCreate += "[" + row.columnName + "] "
+			if row.dataType == "varchar" {				
+				queryCreate += row.dataType + " (" + strconv.Itoa(row.maxChars) + ") NULL"	
+			} else {
+				queryCreate += "[" + row.dataType + "] NULL"
+			}
+			querySelect += "[" + row.columnName + "] "
+			queryInsert += "[" + row.columnName + "]"
+			r++
 		}
-		query += ") ON [PRIMARY]"
+		queryCreate += ") ON [PRIMARY]"
+		querySelect += "FROM [" + dbName + "].[dbo]." + tableOriginalName
 
 		_, err = db.Exec(queryCreate)
+		checkErr(err)
+
+		readingRows, err := db.Query(querySelect)		
+		checkErr(err)
+
+
+		////////////////////////////////////////////////////
+		columns, err := readingRows.Columns()
+		checkErr(err)
+	
+		// Make a slice for the values
+		values := make([]sql.RawBytes, len(columns))
+	
+		// rows.Scan wants '[]interface{}' as an argument, so we must copy the
+		// references into such a slice
+		scanArgs := make([]interface{}, len(values))
+		for i := range values {
+			scanArgs[i] = &values[i]
+		}
+		
+		for readingRows.Next() {
+			queryInsertValues := "("
+			// get RawBytes from data
+			err = readingRows.Scan(scanArgs...)
+			checkErr(err)
+			for i, col := range values {
+				// you need to be carefull with the datatypes here
+				// check out the docs for details on here
+				if i > 0 {
+					queryInsertValues += ", "	
+				}
+				queryInsertValues += "'" + string(col) + "'"
+				
+			}
+			//fmt.Println(queryInsert + ") VALUES " + queryInsertValues + ")")
+			_, err = db.Exec(queryInsert + ") VALUES " + queryInsertValues + ")")
+			checkErr(err)
+		}
 	}
 
 	return tableOriginalName + "_orig", err;
