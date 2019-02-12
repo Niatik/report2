@@ -22,6 +22,33 @@ type TableDescription struct {
 	maxChars int
 }
 
+// TSRV030xl for reading data from Excel sheet (TSRV 030,031,032)
+type TSRV030xl struct {
+	date string
+	vnr  float64
+	t1   float64
+	t2   float64
+	t3   float64
+	m1   float64
+	m2   float64
+	m3   float64
+	w    float64
+}
+
+// TSRV030db for reading data from database (TSRV 030,031,032)
+type TSRV030db struct {
+	W6   sql.NullFloat64
+	m1   sql.NullFloat64
+	m2   sql.NullFloat64
+	m3   sql.NullFloat64
+	t1   sql.NullFloat64
+	t2   sql.NullFloat64
+	t3   sql.NullFloat64
+	tnar sql.NullFloat64
+	tpr  sql.NullFloat64
+}
+
+
 // LoadConfig load parameters for Database 
 func LoadConfig() (string, string, string, string, string, error) {
 	err := godotenv.Load()
