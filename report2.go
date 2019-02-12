@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/alexbrainman/odbc"
 	_ "github.com/denisenkom/go-mssqldb"
+	"github.com/tealeg/xlsx"
 
 )
 
@@ -20,6 +21,19 @@ type TableDescription struct {
 	columnName string
 	dataType  string
 	maxChars int
+}
+
+// Creator interface of device creator 
+type Creator interface {
+	СreateDevice(model string) Device // Параметризированный Фабричный Метод
+	registerDevice(Device)            // Регистрация созданого подукта
+}
+
+// Device interface of device
+type Device interface {
+	SetSerial(serial string)
+	SetSheet(sheet xlsx.Sheet)
+	Send() error // каждый продукт должно быть можно использовать
 }
 
 // TSRV030xl for reading data from Excel sheet (TSRV 030,031,032)
@@ -46,6 +60,22 @@ type TSRV030db struct {
 	t3   sql.NullFloat64
 	tnar sql.NullFloat64
 	tpr  sql.NullFloat64
+}
+
+// TSRV030Vzl for storing device data
+type TSRV030Vzl struct {
+	serial string
+	sheet  xlsx.Sheet
+}
+
+// SetSerial sets the serial number of the device (TSRV 030,031,032) 
+func (self *TSRV030Vzl) SetSerial(serial string) {
+	self.serial = serial
+}
+
+// SetSheet sets the Excel sheet with data of the device (TSRV 030,031,032)
+func (self *TSRV030Vzl) SetSheet(sheet xlsx.Sheet) {
+	self.sheet = sheet
 }
 
 
