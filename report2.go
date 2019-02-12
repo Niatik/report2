@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	//"fmt"
+	"log"
 	"os"
 	"strconv"
 	"github.com/joho/godotenv"
@@ -25,15 +26,55 @@ type TableDescription struct {
 
 // Creator interface of device creator 
 type Creator interface {
-	СreateDevice(model string) Device // Параметризированный Фабричный Метод
-	registerDevice(Device)            // Регистрация созданого подукта
+	СreateDevice(model string) Device // Parameterized Factory Method
+	registerDevice(Device)            // Registration of the created device
 }
 
 // Device interface of device
 type Device interface {
 	SetSerial(serial string)
 	SetSheet(sheet xlsx.Sheet)
-	Send() error // каждый продукт должно быть можно использовать
+	Send() error 					// Every device should be usable
+}
+
+// ConcreteCreator struct for concrete device creator
+type ConcreteCreator struct {
+	devices []*Device 				// Produced devices
+}
+
+// CreateDevice method to create concrete device
+func (concreteCreator *ConcreteCreator) CreateDevice(model string, app string) Device {
+	var device Device
+
+	if app == "Arc" {
+		switch model {
+		case "TV7":
+			//device = &TV7Arc{}
+		default:
+			log.Fatalln("Unknown device")
+		}
+	} else {
+		switch model {
+		case "TV7":
+			//device = &TV7Vzl{}
+		case "VKT7":
+			//device = &VKT7Vzl{}
+		case "TSRV030":
+			//device = &TSRV030Vzl{}
+		case "TSRV034":
+			//device = &TSRV034Vzl{}
+		default:
+			log.Fatalln("Unknown device")
+		}
+	}
+
+	concreteCreator.registerDevice(device)
+
+	return device
+}
+
+func (concreteCreator *ConcreteCreator) registerDevice(device Device) {
+	concreteCreator.devices = append(concreteCreator.devices, &device)
 }
 
 // TSRV030xl for reading data from Excel sheet (TSRV 030,031,032)
