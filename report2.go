@@ -167,7 +167,7 @@ func (device *TSRV030Vzl) Send() error {
 
 		if rowNumber == 2 {
 			query := "SELECT TOP 1 [W6], [m1], [m2], [m3], [t1], [t2], [t3], [Tнар], [Tпр]	FROM [" + dbName + "].[dbo].[Суточная_" + device.serial + "_ТСРВ030031032]"
-			query += " WHERE ДатаВремя < '" + tStart.Format("02.01.2006") + "' ORDER BY ДатаВремя DESC"
+			query += " WHERE ДатаВремя < '" + TimeToString(tStart) + "' ORDER BY ДатаВремя DESC"
 			readingPrevRows, err := db.Query(query)
 			checkErr(err)
 			for readingPrevRows.Next() {
@@ -186,8 +186,8 @@ func (device *TSRV030Vzl) Send() error {
 		dbRow.tnar.Float64 = dbRow.tnar.Float64 + Round(xlRow.vnr*3600)
 		dbRow.tpr.Float64 = dbRow.tpr.Float64 + Round((24-xlRow.vnr)*3600)
 
-		query := "SELECT COUNT(*) FROM [" + dbName + "].[dbo].[Суточная_" + device.serial + "_ТСРВ030031032] WHERE ДатаВремя >= '" + tStart.Format("02.01.2006") + "'"
-		query += " AND ДатаВремя < '" + tFinish.Format("02.01.2006") + "'"
+		query := "SELECT COUNT(*) FROM [" + dbName + "].[dbo].[Суточная_" + device.serial + "_ТСРВ030031032] WHERE ДатаВремя >= '" + TimeToString(tStart) + "'"
+		query += " AND ДатаВремя < '" + TimeToString(tFinish) + "'"
 		readings, err := db.Query(query)
 		checkErr(err)
 
@@ -208,9 +208,9 @@ func (device *TSRV030Vzl) Send() error {
 
 	tStart = tFinish
 	tFinish = tStart.AddDate(0, 0, 1)
-
-	query := "SELECT TOP 1 [W6], [m1], [m2], [m3], [t1], [t2], [t3], [Tнар], [Tпр]	FROM [" + dbName + "].[dbo].[Суточная_" + device.serial + "_ТСРВ030031032_orig]"
-	query += " WHERE ДатаВремя >= '" + tStart.Format("02.01.2006") + "' ORDER BY ДатаВремя ASC"
+	
+	query := "SELECT [W6], [m1], [m2], [m3], [t1], [t2], [t3], [Tнар], [Tпр]	FROM [" + dbName + "].[dbo].[Суточная_" + device.serial + "_ТСРВ030031032_orig]"
+	query += " WHERE ДатаВремя >= '" + TimeToString(tStart) + "' ORDER BY ДатаВремя ASC"
 	readingRows, err := db.Query(query)
 
 	for readingRows.Next() {
@@ -218,7 +218,7 @@ func (device *TSRV030Vzl) Send() error {
 		var dbRowCurr TSRV030db
 	
 		query := "SELECT TOP 1 [W6], [m1], [m2], [m3], [t1], [t2], [t3], [Tнар], [Tпр]	FROM [" + dbName + "].[dbo].[Суточная_" + device.serial + "_ТСРВ030031032_orig]"
-		query += " WHERE ДатаВремя < '" + tStart.Format("02.01.2006") + "' AND ([W6] IS NOT NULL) ORDER BY ДатаВремя DESC"
+		query += " WHERE ДатаВремя < '" + TimeToString(tStart) + "' AND ([W6] > 0) ORDER BY ДатаВремя DESC"
 		readingPrevRows, err := db.Query(query)
 		checkErr(err)
 
@@ -228,7 +228,7 @@ func (device *TSRV030Vzl) Send() error {
 		}
 
 		query = "SELECT TOP 1 [W6], [m1], [m2], [m3], [t1], [t2], [t3], [Tнар], [Tпр]	FROM [" + dbName + "].[dbo].[Суточная_" + device.serial + "_ТСРВ030031032_orig]"
-		query += " WHERE ДатаВремя >= '" + tStart.Format("02.01.2006") + "' AND ДатаВремя < '" + tFinish.Format("02.01.2006") + "' AND ([W6] IS NOT NULL)"
+		query += " WHERE ДатаВремя >= '" + TimeToString(tStart) + "' AND ДатаВремя < '" + TimeToString(tFinish) + "' AND ([W6] > 0)"
 		readingCurrRows, err := db.Query(query)
 		checkErr(err)
 
@@ -237,20 +237,40 @@ func (device *TSRV030Vzl) Send() error {
 			checkErr(err)
 		}
 
-		dbRow.W6.Float64 = dbRow.W6.Float64 + (dbRowCurr.W6.Float64-dbRowPrev.W6.Float64)/4186.80174034068 // Round(xlRow.w*4186.80174034068)
-		dbRow.m1.Float64 = dbRow.m1.Float64 + (dbRowCurr.m1.Float64-dbRowPrev.m1.Float64)/1000
-		dbRow.m2.Float64 = dbRow.m2.Float64 + (dbRowCurr.m2.Float64-dbRowPrev.m2.Float64)/1000
-		dbRow.m3.Float64 = dbRow.m3.Float64 + (dbRowCurr.m3.Float64-dbRowPrev.m3.Float64)/1000
-		dbRow.t1.Float64 = dbRowCurr.t1.Float64 / 100
-		dbRow.t2.Float64 = dbRowCurr.t2.Float64 / 100
-		dbRow.t3.Float64 = dbRowCurr.t3.Float64 / 100
-		dbRow.tnar.Float64 = dbRow.tnar.Float64 + (dbRowCurr.tnar.Float64-dbRowPrev.tnar.Float64)/3600
-		dbRow.tpr.Float64 = dbRow.tpr.Float64 + (dbRowCurr.tpr.Float64-dbRowPrev.tpr.Float64)/3600
-
-		_, err = stmtUpdateTSRV.Exec(dbRow.W6.Float64, dbRow.m1.Float64, dbRow.m2.Float64, dbRow.m3.Float64, dbRow.t1.Float64, dbRow.t2.Float64, dbRow.t3.Float64, dbRow.tnar.Float64, dbRow.tpr.Float64, tStart, tFinish)
+		if dbRowCurr.W6.Float64 > 0 {
+			dbRow.W6.Float64 = dbRow.W6.Float64 + (dbRowCurr.W6.Float64-dbRowPrev.W6.Float64)
+			dbRow.m1.Float64 = dbRow.m1.Float64 + (dbRowCurr.m1.Float64-dbRowPrev.m1.Float64)
+			dbRow.m2.Float64 = dbRow.m2.Float64 + (dbRowCurr.m2.Float64-dbRowPrev.m2.Float64)
+			dbRow.m3.Float64 = dbRow.m3.Float64 + (dbRowCurr.m3.Float64-dbRowPrev.m3.Float64)
+			dbRow.t1.Float64 = dbRowCurr.t1.Float64
+			dbRow.t2.Float64 = dbRowCurr.t2.Float64
+			dbRow.t3.Float64 = dbRowCurr.t3.Float64
+			dbRow.tnar.Float64 = dbRow.tnar.Float64 + (dbRowCurr.tnar.Float64-dbRowPrev.tnar.Float64)
+			dbRow.tpr.Float64 = dbRow.tpr.Float64 + (dbRowCurr.tpr.Float64-dbRowPrev.tpr.Float64)
+		}
+		if dbRowCurr.W6.Float64 > 0 {
+			_, err = stmtUpdateTSRV.Exec(dbRow.W6.Float64, dbRow.m1.Float64, dbRow.m2.Float64, dbRow.m3.Float64, dbRow.t1.Float64, dbRow.t2.Float64, dbRow.t3.Float64, dbRow.tnar.Float64, dbRow.tpr.Float64, tStart, tFinish)
+		} else {
+			_, err = stmtUpdateTSRV.Exec(nil, nil, nil, nil, nil, nil, nil, nil, nil, tStart, tFinish)
+		}
 		checkErr(err)
+
+		tStart = tFinish
+		tFinish = tStart.AddDate(0, 0, 1)	
 	}
 	return err
+}
+
+// TimeToString transform time.Time to string
+func TimeToString(t time.Time) string {
+	return t.Format("02.01.2006")
+}
+
+
+// ResultQuery function to execute query and return result
+func ResultQuery(db *sql.DB, query string) (*sql.Rows, error) {
+	result, err := db.Query(query)
+	return result, err
 }
 
 // LoadConfig load parameters for Database
