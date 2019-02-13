@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	// Driver for MSSQL database
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/alexbrainman/odbc"
 
