@@ -45,9 +45,9 @@ var _ = Describe("Report", func() {
 	
 		device.SetSerial(serial)
 		device.SetSheet(*sheet)
-		device.Send()
+		err:=device.Send()
 		It("has the table in database", func() {
-			Expect(true).Should(BeTrue())
+			Expect(err).Should(BeNil())
 		})	
 	})
 
