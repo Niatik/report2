@@ -1,20 +1,20 @@
-package main_test
+package utils_test
 
 import (
     "testing"
 
     . "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/tealeg/xlsx"
-	. "report2"
+	. "report2/utils"
 )
 
-func TestReport(t *testing.T) {
+func TestUtils(t *testing.T) {
     RegisterFailHandler(Fail)
-    RunSpecs(t, "Report Suite")
+    RunSpecs(t, "Report Utilities Suite")
 }
 
-var _ = Describe("Report", func() {
+var _ = Describe("Report Utils", func() {
+	
 	Context("Copy Table", func() {
 		_, dbServer, dbUser, dbPassword, dbName, _ := LoadConfig()
 		db := ConnectMSSQL(dbServer, dbUser, dbPassword)
@@ -27,29 +27,29 @@ var _ = Describe("Report", func() {
 		})
 	})
 
-	Context("Send Vzljot 031", func() {
-		excelFileName := "Data1901.xlsx"
-		xlFile, _ := xlsx.OpenFile(excelFileName)
-	
-		sheet := xlFile.Sheet["719138"]
-	
-		model, _ := sheet.Cell(0, 0).String()
-	
-		application, _ := sheet.Cell(0, 1).String()
-	
-		serial, _ := sheet.Cell(0, 2).String()
-	
-		var c ConcreteCreator
-		device := c.CreateDevice(model, application)
-		c.RegisterDevice(device)
-	
-		device.SetSerial(serial)
-		device.SetSheet(*sheet)
-		err:=device.Send()
-		It("has the table in database", func() {
-			Expect(err).Should(BeNil())
-		})	
-	})
+	//Context("Send Vzljot 031", func() {
+	//	excelFileName := "Data1901.xlsx"
+	//	xlFile, _ := xlsx.OpenFile(excelFileName)
+	//
+	//	sheet := xlFile.Sheet["719138"]
+	//
+	//	model, _ := sheet.Cell(0, 0).String()
+	//
+	//	application, _ := sheet.Cell(0, 1).String()
+	//
+	//	serial, _ := sheet.Cell(0, 2).String()
+	//
+	//	var c ConcreteCreator
+	//	device := c.CreateDevice(model, application)
+	//	c.RegisterDevice(device)
+	//
+	//	device.SetSerial(serial)
+	//	device.SetSheet(*sheet)
+	//	err:=device.Send()
+	//	It("has the table in database", func() {
+	//		Expect(err).Should(BeNil())
+	//	})	
+	//})
 
 	Context("Exist Table", func() {
 		_, dbServer, dbUser, dbPassword, dbName, _ := LoadConfig()
